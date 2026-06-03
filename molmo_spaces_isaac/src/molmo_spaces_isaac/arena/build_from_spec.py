@@ -32,12 +32,15 @@ from molmo_spaces_isaac.arena.thor_asset import (
 log = logging.getLogger(__name__)
 
 try:
-    from isaaclab_arena.assets.asset_registry import AssetRegistry
     from isaaclab_arena.assets.object_base import ObjectType
     from isaaclab_arena.environments.arena_env_builder import ArenaEnvBuilder
     from isaaclab_arena.environments.isaaclab_arena_environment import IsaacLabArenaEnvironment
     from isaaclab_arena.scene.scene import Scene
     from isaaclab_arena.utils.pose import Pose
+    try:
+        from isaaclab_arena.assets.registries import AssetRegistry
+    except ImportError:
+        from isaaclab_arena.assets.asset_registry import AssetRegistry
 
     from molmo_spaces_isaac.arena.arena_collision_objects import get_arena_object_class
 
@@ -892,6 +895,7 @@ def build_arena_env_from_episode_spec(
     use_joint_velocity_control: bool = False,
     num_envs: int = 1,
     env_spacing: float | None = None,
+    task_description: str | None = None,
 ):
     """Build a registered Arena env from ArenaEpisodeSpec. Uses the episode's MolmoSpaces scene USD when spec.scene_usd_path is set; otherwise Arena background by background_key. Returns (env, env_builder)."""
     if not _ARENA_AVAILABLE or get_arena_object_class is None:
@@ -1032,6 +1036,7 @@ def build_arena_env_from_episode_spec(
         pick_up_object=pick_object,
         background_scene=background,
         episode_length_s=episode_length_s,
+        task_description=task_description,
         pick_start_z=pick_start_z,
         pick_lift_threshold_m=success_radius,
     )
@@ -1091,6 +1096,7 @@ def build_arena_env_from_episode_spec(
         embodiment=embodiment,
         scene=scene,
         task=task,
+        env_cfg_callback=task.modify_env_cfg,
     )
     from isaaclab_arena.cli.isaaclab_arena_cli import get_isaaclab_arena_cli_parser
 

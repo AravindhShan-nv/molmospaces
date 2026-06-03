@@ -1049,6 +1049,7 @@ def _run_one_episode(
     extra = tuple(getattr(args, "scene_extra_xyz", [0.0, 0.0, 0.0])[:3])
     _enable_cameras = getattr(args, "with_cameras", False) or (getattr(args, "policy_type", "zero") == "pi_remote")
     embodiment_key = _selected_embodiment_key(args)
+    task_description = (episode_dict.get("language") or {}).get("task_description")
     env, _ = build_arena_env_from_episode_spec(
         spec,
         env_name=env_name,
@@ -1064,6 +1065,7 @@ def _run_one_episode(
         num_envs=getattr(args, "num_envs", 1),
         env_spacing=getattr(args, "env_spacing", None),
         enable_cameras=_enable_cameras,
+        task_description=task_description,
     )
     try:
         obs, _ = env.reset()
@@ -1579,6 +1581,7 @@ def main() -> int:
     env_id = f"molmospaces_arena_hi{hi}_ep{args.episode_idx}" if hi is not None else "molmospaces_arena_benchmark"
     _enable_cameras = getattr(args, "with_cameras", False) or (getattr(args, "policy_type", "zero") == "pi_remote")
     embodiment_key = _selected_embodiment_key(args)
+    task_description = (episode_dict.get("language") or {}).get("task_description")
     print(f"[molmospaces_arena] Arena embodiment: {embodiment_key}", flush=True)
     env, _ = build_arena_env_from_episode_spec(
         spec,
@@ -1595,6 +1598,7 @@ def main() -> int:
         num_envs=getattr(args, "num_envs", 1),
         env_spacing=getattr(args, "env_spacing", None),
         enable_cameras=_enable_cameras,
+        task_description=task_description,
     )
     try:
         obs, _ = env.reset()

@@ -45,6 +45,24 @@ class SceneRigidObjectReference(ObjectBase):
             object_cfg.init_state.rot = initial_pose.rotation_wxyz
         return object_cfg
 
+    def get_bounding_box(self):
+        """Return a placeholder bbox for Arena APIs that require ObjectBase bounds.
+
+        Scene-embedded objects are already present in the imported USD and are
+        not placed through Arena's relation solver in this benchmark path, so a
+        zero-size bbox is sufficient for compatibility with newer Arena APIs.
+        """
+        from isaaclab_arena.utils.bounding_box import AxisAlignedBoundingBox
+
+        return AxisAlignedBoundingBox((0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+
+    def get_world_bounding_box(self):
+        bbox = self.get_bounding_box()
+        initial_pose = self._get_initial_pose_as_pose()
+        if initial_pose is None:
+            return bbox
+        return bbox.translated(initial_pose.position_xyz)
+
     def _generate_articulation_cfg(self) -> ArticulationCfg:
         raise TypeError("SceneRigidObjectReference only supports rigid objects.")
 

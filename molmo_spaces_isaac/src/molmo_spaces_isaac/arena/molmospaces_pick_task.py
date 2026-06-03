@@ -15,9 +15,14 @@ import isaaclab.envs.mdp as mdp_isaac_lab
 log = logging.getLogger(__name__)
 
 try:
-    from isaaclab_arena.environments.isaaclab_arena_manager_based_env import (
-        IsaacLabArenaManagerBasedRLEnvCfg,
-    )
+    try:
+        from isaaclab_arena.environments.isaaclab_arena_manager_based_env_cfg import (
+            IsaacLabArenaManagerBasedRLEnvCfg,
+        )
+    except ImportError:
+        from isaaclab_arena.environments.isaaclab_arena_manager_based_env import (
+            IsaacLabArenaManagerBasedRLEnvCfg,
+        )
     from isaaclab_arena.tasks.task_base import TaskBase
 
     _ARENA_AVAILABLE = True
@@ -369,6 +374,7 @@ class MolmoSpacesPickTask(TaskBase):
         background_scene,
         *,
         episode_length_s: float | None = None,
+        task_description: str | None = None,
         pick_start_z: float | None = None,
         pick_lift_threshold_m: float = 0.01,
     ):
@@ -376,11 +382,13 @@ class MolmoSpacesPickTask(TaskBase):
             raise ImportError("isaaclab_arena is required for MolmoSpacesPickTask.")
         if pick_start_z is None:
             raise ValueError("pick_start_z is required for MolmoSpacesPickTask.")
-        self.pick_up_object = pick_up_object
-        self.background_scene = background_scene
-        self.episode_length_s = (
+        episode_length_s = (
             episode_length_s if episode_length_s is not None else self.DEFAULT_EPISODE_LENGTH_S
         )
+        task_description = task_description or "Pick the object."
+        super().__init__(episode_length_s=episode_length_s, task_description=task_description)
+        self.pick_up_object = pick_up_object
+        self.background_scene = background_scene
         pick_name = getattr(pick_up_object, "name", "pick_object")
         pick_prim_path = getattr(pick_up_object, "prim_path", f"{{ENV_REGEX_NS}}/{pick_name}")
         support_exclude_prim_path = getattr(pick_up_object, "scene_object_root_prim_path", pick_prim_path)
@@ -408,7 +416,10 @@ class MolmoSpacesPickTask(TaskBase):
         return None
 
     def get_prompt(self) -> str:
-        return "Pick the object."
+        return self.get_task_description() or "Pick the object."
+
+    def get_task_description(self) -> str | None:
+        return getattr(self, "task_description", None)
 
     def get_mimic_env_cfg(self, embodiment_name: str):
         raise NotImplementedError("MolmoSpacesPickTask has no mimic config.")
